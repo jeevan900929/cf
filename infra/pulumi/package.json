@@ -1,0 +1,8 @@
+{
+  "name": "cf-boilerplate-infra",
+  "private": true,
+  "devDependencies": {
+    "@pulumi/cloudflare": "^6.13.0",
+    "@pulumi/pulumi": "^3.226.0"
+  }
+}

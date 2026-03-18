@@ -1,0 +1,10 @@
+node_modules
+dist
+coverage
+.wrangler
+infra/pulumi/node_modules
+infra/pulumi/bin
+infra/pulumi/.pulumi
+infra/pulumi/Pulumi.*.yaml
+playwright-report
+test-results
