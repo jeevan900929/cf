@@ -8,9 +8,11 @@
   "scripts": {
     "dev": "wrangler dev",
     "deploy": "node scripts/deploy-worker.mjs",
-    "deploy:worker": "node scripts/deploy-worker.mjs",
+    "deploy:dev": "PULUMI_STACK_NAME=dev node scripts/deploy-worker.mjs",
+    "deploy:prod": "PULUMI_STACK_NAME=prod node scripts/deploy-worker.mjs",
+    "deploy:worker": "npm run deploy:dev",
     "types": "wrangler types",
-    "check": "node scripts/deploy-worker.mjs --check",
+    "check": "npm run deploy:dev -- --check",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:e2e": "playwright test",

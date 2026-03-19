@@ -71,19 +71,22 @@ npm run test:all
 
 ### Worker
 
-`npm run deploy` reads the latest Pulumi stack outputs, renders a transient Wrangler
-config with the provisioned Cloudflare resource IDs, validates it, and deploys the Worker.
+`npm run deploy:dev` reads the latest outputs from the local `dev` Pulumi stack, renders
+a transient Wrangler config with the provisioned Cloudflare resource IDs, validates it,
+and deploys the Worker.
 
-For local deploys, make sure the Pulumi stack is current first:
+For local deploys, make sure the `dev` stack is current first:
 
 ```bash
 cd infra/pulumi
+pulumi stack init dev
+pulumi stack select dev
 pulumi up
 ```
 
 ### Automatic deploys
 
-Every push to `main` runs the same flow in GitHub Actions. Add `PULUMI_ACCESS_TOKEN`
+Every push to `main` runs the `prod` stack in GitHub Actions. Add `PULUMI_ACCESS_TOKEN`
 and `CLOUDFLARE_API_TOKEN` as repository secrets so the workflow can refresh the
 Pulumi stack and deploy the Worker.
 
@@ -95,13 +98,15 @@ npm run pages:deploy
 
 ### Pulumi infra
 
-Set the Pulumi config values first. The Worker deploy path will consume the resulting
-stack outputs automatically:
+Set the Pulumi config values on the stack you are targeting. `dev` powers local
+deploys and `prod` powers the GitHub Action on `main`:
 
 ```bash
 cd infra/pulumi
 pulumi login
 pulumi stack init dev
+pulumi stack init prod
+pulumi stack select dev
 pulumi config set accountId <CLOUDFLARE_ACCOUNT_ID>
 pulumi config set --secret apiToken <CLOUDFLARE_API_TOKEN>
 pulumi config set zoneId <CLOUDFLARE_ZONE_ID>
@@ -109,6 +114,9 @@ pulumi config set domainName <YOUR_DOMAIN>
 pulumi config set projectName cf-boilerplate
 pulumi config set workerScriptName cf-boilerplate-api
 ```
+
+Repeat the same config commands after `pulumi stack select prod` so the production
+stack has matching values.
 
 Then apply the stack:
 
