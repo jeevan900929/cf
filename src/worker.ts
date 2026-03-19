@@ -1,11 +1,10 @@
-import { SERVICE_NAME } from "./application/hello";
+import { SERVICE_NAME, type QueueJob } from "../shared/types/api";
 import {
   enqueueDemoJob,
   getHelloDemo,
   handleDemoQueueBatch,
   readDemoArtifact,
   storeDemoArtifact,
-  type DemoQueueJob,
 } from "./services/demo";
 
 function createHeaders(init: HeadersInit = {}, contentType?: string): Headers {
@@ -14,7 +13,7 @@ function createHeaders(init: HeadersInit = {}, contentType?: string): Headers {
     headers.set("content-type", contentType);
   }
   headers.set("access-control-allow-origin", "*");
-  headers.set("access-control-allow-methods", "GET,POST,OPTIONS");
+  headers.set("access-control-allow-methods", "GET,POST,PUT,DELETE,OPTIONS");
   headers.set("access-control-allow-headers", "content-type");
   headers.set("cache-control", "no-store");
   return headers;
@@ -170,10 +169,10 @@ export default {
     );
   },
   async queue(
-    batch: MessageBatch<DemoQueueJob>,
+    batch: MessageBatch<QueueJob>,
     env: Env,
     _ctx: ExecutionContext,
   ): Promise<void> {
     await handleDemoQueueBatch(env, batch);
   },
-} satisfies ExportedHandler<Env, DemoQueueJob>;
+} satisfies ExportedHandler<Env, QueueJob>;

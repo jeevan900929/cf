@@ -1,6 +1,7 @@
 import { createGreeting } from "../domain/greeting";
+import { SERVICE_NAME } from "../../shared/types/api";
 
-export const SERVICE_NAME = "cf-boilerplate" as const;
+export { SERVICE_NAME };
 
 export interface HelloInput {
   name?: string | null;

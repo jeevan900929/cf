@@ -1,5 +1,6 @@
 import { buildHelloResponse } from "../application/hello";
 import { normalizeSubject } from "../domain/greeting";
+import type { ArtifactApiResponse, HelloApiResponse, QueueJob } from "../../shared/types/api";
 
 const HELLO_CACHE_PREFIX = "hello";
 
@@ -10,27 +11,7 @@ export interface DemoEnv {
   JOBS: Queue;
 }
 
-export type DemoHelloPayload = ReturnType<typeof buildHelloResponse> & {
-  visits: number;
-};
-
-export interface DemoHelloResponse extends DemoHelloPayload {
-  source: "d1" | "kv";
-}
-
-export interface DemoArtifactResponse {
-  ok: true;
-  key: string;
-  size: number;
-  content: string;
-}
-
-export interface DemoQueueJob {
-  id: string;
-  name: string;
-  message: string;
-  createdAt: string;
-}
+type HelloPayload = Omit<HelloApiResponse, "source">;
 
 function helloCacheKey(subject: string): string {
   return `${HELLO_CACHE_PREFIX}:${subject.toLowerCase()}`;
@@ -63,10 +44,10 @@ async function upsertGreetingCount(db: D1Database, subject: string): Promise<num
 export async function getHelloDemo(
   env: DemoEnv,
   name: string | null | undefined,
-): Promise<DemoHelloResponse> {
+): Promise<HelloApiResponse> {
   const subject = normalizeSubject(name);
   const cacheKey = helloCacheKey(subject);
-  const cached = await env.CACHE.get<DemoHelloPayload>(cacheKey, "json");
+  const cached = await env.CACHE.get<HelloPayload>(cacheKey, "json");
 
   if (cached) {
     return {
@@ -76,7 +57,7 @@ export async function getHelloDemo(
   }
 
   const visits = await upsertGreetingCount(env.DB, subject);
-  const payload: DemoHelloPayload = {
+  const payload: HelloPayload = {
     ...buildHelloResponse({ name: subject }),
     visits,
   };
@@ -93,7 +74,7 @@ export async function storeDemoArtifact(
   env: Pick<DemoEnv, "FILES">,
   key: string,
   content: string,
-): Promise<DemoArtifactResponse> {
+): Promise<ArtifactApiResponse> {
   const object = await env.FILES.put(key, content, {
     httpMetadata: {
       contentType: "text/plain; charset=utf-8",
@@ -111,7 +92,7 @@ export async function storeDemoArtifact(
 export async function readDemoArtifact(
   env: Pick<DemoEnv, "FILES">,
   key: string,
-): Promise<DemoArtifactResponse | null> {
+): Promise<ArtifactApiResponse | null> {
   const object = await env.FILES.get(key);
 
   if (!object) {
@@ -129,7 +110,7 @@ export async function readDemoArtifact(
 export async function enqueueDemoJob(
   env: Pick<DemoEnv, "JOBS">,
   name: string | null | undefined,
-): Promise<DemoQueueJob> {
+): Promise<QueueJob> {
   const subject = normalizeSubject(name);
   const job = {
     id: crypto.randomUUID(),
@@ -145,7 +126,7 @@ export async function enqueueDemoJob(
 
 export async function handleDemoQueueBatch(
   env: Pick<DemoEnv, "DB">,
-  batch: MessageBatch<DemoQueueJob>,
+  batch: MessageBatch<QueueJob>,
 ): Promise<void> {
   for (const message of batch.messages) {
     const job = message.body;

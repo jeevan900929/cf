@@ -2,8 +2,7 @@ name: Deploy to Cloudflare
 
 on:
   push:
-    branches:
-      - main
+    branches: [main]
 
 concurrency:
   group: deploy-main
@@ -14,43 +13,108 @@ permissions:
   contents: read
 
 jobs:
-  deploy:
+  changes:
     runs-on: ubuntu-latest
+    outputs:
+      worker: ${{ steps.filter.outputs.worker }}
+      pages: ${{ steps.filter.outputs.pages }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            worker:
+              - 'src/**'
+              - 'shared/**'
+              - 'wrangler.jsonc'
+              - 'migrations/**'
+              - 'scripts/deploy-worker.mjs'
+              - 'scripts/utils.mjs'
+              - 'infra/**'
+            pages:
+              - 'pages/**'
+              - 'shared/**'
+              - 'scripts/deploy-pages.mjs'
+              - 'scripts/utils.mjs'
+              - 'infra/**'
+
+  test:
+    needs: changes
+    if: needs.changes.outputs.worker == 'true' || needs.changes.outputs.pages == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - run: npm run check
+
+  infra:
+    needs: [changes, test]
+    if: needs.changes.outputs.worker == 'true' || needs.changes.outputs.pages == 'true'
+    runs-on: ubuntu-latest
+    outputs:
+      stack_outputs: ${{ steps.get_outputs.outputs.json }}
     env:
       CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-      CF_API_WORKER_URL: ${{ secrets.CF_API_WORKER_URL }}
     steps:
-      - name: Check out repository
-        uses: actions/checkout@v4
-
-      - name: Authenticate to Pulumi
-        uses: pulumi/auth-actions@v1
+      - uses: actions/checkout@v4
+      - uses: pulumi/auth-actions@v1
         with:
           organization: jeevanraj-angamuthu-ext-sadhguru-org
           requested-token-type: urn:pulumi:token-type:access_token:personal
           scope: user:jeevanraj-angamuthu-ext-sadhguru-org
-
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
+      - uses: actions/setup-node@v4
         with:
           node-version: 20
           cache: npm
-
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Run tests
-        run: npm run check
-
-      - name: Apply Pulumi stack
-        uses: pulumi/actions@v6
+      - run: npm ci
+      - uses: pulumi/actions@v6
         with:
           command: up
           stack-name: jeevanraj-angamuthu-ext-sadhguru-org/cf-boilerplate-infra/prod
           work-dir: infra/pulumi
+      - id: get_outputs
+        working-directory: infra/pulumi
+        run: |
+          {
+            echo 'json<<EOF'
+            pulumi stack output --json
+            echo EOF
+          } >> $GITHUB_OUTPUT
 
-      - name: Deploy Worker
-        run: node scripts/deploy-worker.mjs
+  deploy-worker:
+    needs: [changes, infra]
+    if: needs.changes.outputs.worker == 'true'
+    runs-on: ubuntu-latest
+    env:
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      PULUMI_OUTPUTS_JSON: ${{ needs.infra.outputs.stack_outputs }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - run: node scripts/deploy-worker.mjs
 
-      - name: Deploy Pages
-        run: node scripts/deploy-pages.mjs
+  deploy-pages:
+    needs: [changes, infra]
+    if: needs.changes.outputs.pages == 'true'
+    runs-on: ubuntu-latest
+    env:
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CF_API_WORKER_URL: ${{ secrets.CF_API_WORKER_URL }}
+      PULUMI_OUTPUTS_JSON: ${{ needs.infra.outputs.stack_outputs }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - run: node scripts/deploy-pages.mjs

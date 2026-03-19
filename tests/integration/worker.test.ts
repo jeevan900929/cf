@@ -3,7 +3,7 @@ import { createExecutionContext, createMessageBatch, getQueueResult } from "clou
 import { describe, expect, it } from "vitest";
 
 import worker from "../../src/worker";
-import type { DemoQueueJob } from "../../src/services/demo";
+import type { QueueJob } from "../../shared/types/api";
 
 describe("worker integration", () => {
   it("caches greeting responses through KV and D1", async () => {
@@ -114,7 +114,7 @@ describe("worker integration", () => {
       createdAt: "2026-03-18T00:00:00.000Z",
     };
 
-    const batch = createMessageBatch<DemoQueueJob>("cf-boilerplate-jobs", [
+    const batch = createMessageBatch<QueueJob>("cf-boilerplate-jobs", [
       {
         id: "message-1",
         timestamp: new Date("2026-03-18T00:00:00.000Z"),
