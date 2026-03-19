@@ -49,6 +49,18 @@ function getRoomSubpath(pathname: string): string {
   return match?.[1] ?? "";
 }
 
+interface EdgeInfo {
+  colo: string;
+  country: string;
+  city: string;
+}
+
+function getEdge(request: Request): EdgeInfo | undefined {
+  const cf = request.cf as { colo?: string; country?: string; city?: string } | undefined;
+  if (!cf?.colo) return undefined;
+  return { colo: cf.colo, country: cf.country ?? "", city: cf.city ?? "" };
+}
+
 function getR2DemoKey(pathname: string): string | null {
   const prefix = "/api/demo/r2/";
   if (!pathname.startsWith(prefix)) return null;
@@ -79,6 +91,7 @@ export default {
 async function handleRequest(request: Request, env: Env): Promise<Response> {
     const url = new URL(request.url);
     const { pathname } = url;
+    const edge = getEdge(request);
 
     // --- Public routes ---
 
@@ -91,19 +104,20 @@ async function handleRequest(request: Request, env: Env): Promise<Response> {
         ok: true,
         service: SERVICE_NAME,
         bindings: ["DB", "CACHE", "FILES", "JOBS", "ROOMS"],
+        edge,
       });
     }
 
     if (request.method === "POST" && pathname === "/api/auth/login") {
       const body = await readJsonBody<{ username?: string; password?: string }>(request);
       if (!body?.username || !body?.password) {
-        return json({ ok: false, error: "Username and password required" }, { status: 400 });
+        return json({ ok: false, error: "Username and password required", edge }, { status: 400 });
       }
       try {
         const result = await login(env.CACHE, body.username, body.password);
-        return json({ ok: true, ...result });
+        return json({ ok: true, ...result, edge });
       } catch {
-        return json({ ok: false, error: "Invalid credentials" }, { status: 401 });
+        return json({ ok: false, error: "Invalid credentials", edge }, { status: 401 });
       }
     }
 
@@ -113,21 +127,21 @@ async function handleRequest(request: Request, env: Env): Promise<Response> {
     try {
       user = await authenticate(request, env.CACHE);
     } catch {
-      return json({ ok: false, error: "Unauthorized" }, { status: 401 });
+      return json({ ok: false, error: "Unauthorized", edge }, { status: 401 });
     }
 
     if (request.method === "GET" && pathname === "/api/config") {
       const config = await getConfig(env.CACHE);
-      return json({ ok: true, config });
+      return json({ ok: true, config, edge });
     }
 
     if (request.method === "GET" && pathname === "/api/hello") {
-      return json(await getHelloDemo(env, url.searchParams.get("name")));
+      return json({ ...(await getHelloDemo(env, url.searchParams.get("name"))), edge });
     }
 
     if (request.method === "POST" && pathname === "/api/hello") {
       const body = await readJsonBody<{ name?: string }>(request);
-      return json(await getHelloDemo(env, body?.name));
+      return json({ ...(await getHelloDemo(env, body?.name)), edge });
     }
 
     // --- Room routes ---
@@ -145,19 +159,25 @@ async function handleRequest(request: Request, env: Env): Promise<Response> {
       }
 
       if (request.method === "POST" && subpath === "/action") {
-        return stub.fetch(new Request("https://do/action?actor=" + encodeURIComponent(user.sub), {
+        const doRes = await stub.fetch(new Request("https://do/action?actor=" + encodeURIComponent(user.sub), {
           method: "POST",
           headers: request.headers,
           body: request.body,
         }));
+        const doBody = await doRes.json();
+        return json({ ...doBody as Record<string, unknown>, edge });
       }
 
       if (request.method === "GET" && subpath === "/state") {
-        return stub.fetch(new Request("https://do/state"));
+        const doRes = await stub.fetch(new Request("https://do/state"));
+        const doBody = await doRes.json();
+        return json({ ...doBody as Record<string, unknown>, edge });
       }
 
       if (request.method === "GET" && subpath === "/history") {
-        return stub.fetch(new Request("https://do/history"));
+        const doRes = await stub.fetch(new Request("https://do/history"));
+        const doBody = await doRes.json();
+        return json({ ...doBody as Record<string, unknown>, edge });
       }
     }
 
@@ -166,14 +186,14 @@ async function handleRequest(request: Request, env: Env): Promise<Response> {
     const r2Key = getR2DemoKey(pathname);
     if (r2Key) {
       if (request.method === "PUT") {
-        return json(await storeDemoArtifact(env, r2Key, await request.text()), { status: 201 });
+        return json({ ...(await storeDemoArtifact(env, r2Key, await request.text())), edge }, { status: 201 });
       }
       if (request.method === "GET") {
         const artifact = await readDemoArtifact(env, r2Key);
         if (!artifact) {
-          return json({ ok: false, error: "Artifact not found" }, { status: 404 });
+          return json({ ok: false, error: "Artifact not found", edge }, { status: 404 });
         }
-        return json(artifact);
+        return json({ ...artifact, edge });
       }
       if (request.method === "DELETE") {
         await env.FILES.delete(r2Key);
@@ -186,8 +206,8 @@ async function handleRequest(request: Request, env: Env): Promise<Response> {
     if (request.method === "POST" && pathname === "/api/demo/queue") {
       const body = await readJsonBody<{ name?: string }>(request);
       const job = await enqueueDemoJob(env, body?.name);
-      return json({ ok: true, service: SERVICE_NAME, queue: "cf-boilerplate-jobs", job }, { status: 202 });
+      return json({ ok: true, service: SERVICE_NAME, queue: "cf-boilerplate-jobs", job, edge }, { status: 202 });
     }
 
-    return json({ ok: false, service: SERVICE_NAME, error: "Not Found" }, { status: 404 });
+    return json({ ok: false, service: SERVICE_NAME, error: "Not Found", edge }, { status: 404 });
 }

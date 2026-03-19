@@ -59,6 +59,7 @@
       <p class="eyebrow">Cloudflare Pages</p>
       <h1>Hello from Cloudflare</h1>
       <p class="sub">Exercises JWT auth, Durable Objects, D1, KV, R2, Queue, and WebSocket.</p>
+      <p id="edge-info" class="sub" style="font-size:.82rem"></p>
 
       <!-- Login -->
       <section id="auth-panel">
@@ -108,9 +109,19 @@
       let token = null;
       let ws = null;
 
+      let lastEdge = "";
+
+      function updateEdge(data) {
+        if (data?.edge?.colo) {
+          lastEdge = data.edge.colo;
+          $("edge-info").innerHTML = `Edge: <code>${data.edge.colo}</code> (${data.edge.city || data.edge.country || ""})`;
+        }
+      }
+
       function log(msg) {
+        const prefix = lastEdge ? `[${lastEdge}] ` : "";
         const li = document.createElement("li");
-        li.textContent = `${new Date().toLocaleTimeString()} - ${msg}`;
+        li.textContent = `${new Date().toLocaleTimeString()} ${prefix}- ${msg}`;
         $("log").prepend(li);
       }
 
@@ -124,6 +135,7 @@
         if (method === "PUT" && typeof body === "string") opts.headers["content-type"] = "text/plain";
         const res = await fetch(`${apiRoot}${path}`, opts);
         const data = await res.json();
+        updateEdge(data);
         if (!res.ok) throw new Error(data.error || `HTTP ${res.status}`);
         return data;
       }
@@ -136,6 +148,7 @@
             headers: { "content-type": "application/json" },
             body: JSON.stringify({ username: $("username").value, password: $("password").value }),
           })).json();
+          updateEdge(data);
           if (!data.ok) throw new Error(data.error || "Login failed");
           token = data.token;
           $("auth-panel").hidden = true;

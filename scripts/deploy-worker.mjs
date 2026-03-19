@@ -76,6 +76,9 @@ async function main() {
     return;
   }
 
+  console.log("Applying D1 migrations...");
+  await run("wrangler", ["d1", "migrations", "apply", "DB", "--remote", "--config", generatedConfigPath]);
+
   console.log("Deploying Worker...");
   await run("wrangler", ["deploy", "--config", generatedConfigPath]);
 }
