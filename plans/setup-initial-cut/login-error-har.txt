@@ -1,0 +1,227 @@
+{
+  "log": {
+    "version": "1.2",
+    "creator": {
+      "name": "WebInspector",
+      "version": "537.36"
+    },
+    "pages": [],
+    "entries": [
+      {
+        "_connectionId": "22945",
+        "_initiator": {
+          "type": "script",
+          "stack": {
+            "callFrames": [
+              {
+                "functionName": "",
+                "scriptId": "23",
+                "url": "https://cf-boilerplate-web.pages.dev/",
+                "lineNumber": 133,
+                "columnNumber": 36
+              }
+            ]
+          }
+        },
+        "_priority": "High",
+        "_resourceType": "fetch",
+        "cache": {},
+        "connection": "443",
+        "request": {
+          "method": "POST",
+          "url": "https://cf-boilerplate-api.cf-boilerplate.workers.dev/auth/login",
+          "httpVersion": "h3",
+          "headers": [
+            {
+              "name": ":authority",
+              "value": "cf-boilerplate-api.cf-boilerplate.workers.dev"
+            },
+            {
+              "name": ":method",
+              "value": "POST"
+            },
+            {
+              "name": ":path",
+              "value": "/auth/login"
+            },
+            {
+              "name": ":scheme",
+              "value": "https"
+            },
+            {
+              "name": "accept",
+              "value": "*/*"
+            },
+            {
+              "name": "accept-encoding",
+              "value": "gzip, deflate, br, zstd"
+            },
+            {
+              "name": "accept-language",
+              "value": "en-MY,en-GB;q=0.9,en-US;q=0.8,en;q=0.7"
+            },
+            {
+              "name": "cache-control",
+              "value": "no-cache"
+            },
+            {
+              "name": "content-length",
+              "value": "37"
+            },
+            {
+              "name": "content-type",
+              "value": "application/json"
+            },
+            {
+              "name": "dnt",
+              "value": "1"
+            },
+            {
+              "name": "origin",
+              "value": "https://cf-boilerplate-web.pages.dev"
+            },
+            {
+              "name": "pragma",
+              "value": "no-cache"
+            },
+            {
+              "name": "priority",
+              "value": "u=1, i"
+            },
+            {
+              "name": "referer",
+              "value": "https://cf-boilerplate-web.pages.dev/"
+            },
+            {
+              "name": "sec-ch-ua",
+              "value": "\"Not:A-Brand\";v=\"99\", \"Google Chrome\";v=\"145\", \"Chromium\";v=\"145\""
+            },
+            {
+              "name": "sec-ch-ua-mobile",
+              "value": "?0"
+            },
+            {
+              "name": "sec-ch-ua-platform",
+              "value": "\"Linux\""
+            },
+            {
+              "name": "sec-fetch-dest",
+              "value": "empty"
+            },
+            {
+              "name": "sec-fetch-mode",
+              "value": "cors"
+            },
+            {
+              "name": "sec-fetch-site",
+              "value": "cross-site"
+            },
+            {
+              "name": "user-agent",
+              "value": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36"
+            }
+          ],
+          "queryString": [],
+          "cookies": [],
+          "headersSize": -1,
+          "bodySize": 37,
+          "postData": {
+            "mimeType": "application/json",
+            "text": "{\"username\":\"demo\",\"password\":\"demo\"}"
+          }
+        },
+        "response": {
+          "status": 401,
+          "statusText": "",
+          "httpVersion": "h3",
+          "headers": [
+            {
+              "name": "access-control-allow-headers",
+              "value": "content-type,authorization"
+            },
+            {
+              "name": "access-control-allow-methods",
+              "value": "GET,POST,PUT,DELETE,OPTIONS"
+            },
+            {
+              "name": "access-control-allow-origin",
+              "value": "*"
+            },
+            {
+              "name": "alt-svc",
+              "value": "h3=\":443\"; ma=86400"
+            },
+            {
+              "name": "cache-control",
+              "value": "no-store"
+            },
+            {
+              "name": "cf-ray",
+              "value": "9deb1b5c789ffd23-SIN"
+            },
+            {
+              "name": "content-length",
+              "value": "35"
+            },
+            {
+              "name": "content-type",
+              "value": "application/json; charset=utf-8"
+            },
+            {
+              "name": "date",
+              "value": "Thu, 19 Mar 2026 08:29:00 GMT"
+            },
+            {
+              "name": "nel",
+              "value": "{\"report_to\":\"cf-nel\",\"success_fraction\":0.0,\"max_age\":604800}"
+            },
+            {
+              "name": "priority",
+              "value": "u=1,i"
+            },
+            {
+              "name": "report-to",
+              "value": "{\"group\":\"cf-nel\",\"max_age\":604800,\"endpoints\":[{\"url\":\"https://a.nel.cloudflare.com/report/v4?s=neSXoTbmgu6%2BAOWmZpRr0BFIwjUCb5ExYK5mz3IkSqX9ljAGTE0pXz0plQH2aqLQOuLV45J6bh4Rj3YGgiEo8EQoMYg73%2F0VsqD9DX5LntLcT3NSmCoR58T3Ka90ufSMzXp62xm1aZoRvF9COwlzLHubXRwlDmpmpA%3D%3D\"}]}"
+            },
+            {
+              "name": "server",
+              "value": "cloudflare"
+            },
+            {
+              "name": "server-timing",
+              "value": "cfExtPri"
+            }
+          ],
+          "cookies": [],
+          "content": {
+            "size": 35,
+            "mimeType": "application/json"
+          },
+          "redirectURL": "",
+          "headersSize": -1,
+          "bodySize": -1,
+          "_transferSize": 527,
+          "_error": null,
+          "_fetchedViaServiceWorker": false
+        },
+        "serverIPAddress": "[2606:4700:3035::6815:4839]",
+        "startedDateTime": "2026-03-19T08:28:59.983Z",
+        "time": 339.33299999989686,
+        "timings": {
+          "blocked": 199.67200000009342,
+          "dns": -1,
+          "ssl": -1,
+          "connect": -1,
+          "send": 0.5210000000000001,
+          "wait": 135.84300000005578,
+          "receive": 3.2969999997476407,
+          "_blocked_queueing": 198.40500000009342,
+          "_workerStart": -1,
+          "_workerReady": -1,
+          "_workerFetchStart": -1,
+          "_workerRespondWithSettled": -1
+        }
+      }
+    ]
+  }
+}
