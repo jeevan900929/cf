@@ -24,7 +24,7 @@ async function main() {
 
   // Bake the Worker URL into the static HTML so the browser calls it directly.
   const html = await readFile(htmlPath, "utf8");
-  const patched = html.replace('data-api-base-url="/api"', `data-api-base-url="${workerUrl}"`);
+  const patched = html.replace('data-api-base-url="/api"', `data-api-base-url="${workerUrl}/api"`);
   if (patched === html) {
     throw new Error('Could not find data-api-base-url="/api" in pages/index.html to patch.');
   }
