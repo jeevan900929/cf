@@ -73,8 +73,11 @@ const apiRoute = new cloudflare.WorkersRoute(
 );
 
 export const databaseId = d1Database.uuid;
+export const databaseName = d1Database.name;
 export const cacheNamespaceId = cacheNamespace.id;
 export const uploadsBucketName = uploadsBucket.name;
+export const queueName = jobsQueue.queueName;
 export const queueId = jobsQueue.queueId;
 export const pagesProjectName = pagesProject.name;
 export const apiRoutePattern = apiRoute.pattern;
+export { accountId, projectName, workerScriptName };

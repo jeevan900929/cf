@@ -7,9 +7,10 @@
   ],
   "scripts": {
     "dev": "wrangler dev",
-    "deploy": "wrangler deploy",
+    "deploy": "node scripts/deploy-worker.mjs",
+    "deploy:worker": "node scripts/deploy-worker.mjs",
     "types": "wrangler types",
-    "check": "wrangler deploy --dry-run",
+    "check": "node scripts/deploy-worker.mjs --check",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:e2e": "playwright test",

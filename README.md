@@ -71,9 +71,21 @@ npm run test:all
 
 ### Worker
 
+`npm run deploy` reads the latest Pulumi stack outputs, renders a transient Wrangler
+config with the provisioned Cloudflare resource IDs, validates it, and deploys the Worker.
+
+For local deploys, make sure the Pulumi stack is current first:
+
 ```bash
-npm run deploy
+cd infra/pulumi
+pulumi up
 ```
+
+### Automatic deploys
+
+Every push to `main` runs the same flow in GitHub Actions. Add `PULUMI_ACCESS_TOKEN`
+and `CLOUDFLARE_API_TOKEN` as repository secrets so the workflow can refresh the
+Pulumi stack and deploy the Worker.
 
 ### Pages
 
@@ -83,7 +95,8 @@ npm run pages:deploy
 
 ### Pulumi infra
 
-Set the Pulumi config values first:
+Set the Pulumi config values first. The Worker deploy path will consume the resulting
+stack outputs automatically:
 
 ```bash
 cd infra/pulumi
