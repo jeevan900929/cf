@@ -100,7 +100,7 @@ jobs:
           node-version: 20
           cache: npm
       - run: npm ci
-      - run: node scripts/deploy-worker.mjs
+      - run: npm run deploy:worker
 
   deploy-pages:
     needs: [changes, infra]
@@ -117,4 +117,4 @@ jobs:
           node-version: 20
           cache: npm
       - run: npm ci
-      - run: node scripts/deploy-pages.mjs
+      - run: npm run deploy:pages
