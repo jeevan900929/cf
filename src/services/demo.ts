@@ -18,27 +18,19 @@ function helloCacheKey(subject: string): string {
 }
 
 async function upsertGreetingCount(db: D1Database, subject: string): Promise<number> {
-  const timestamp = new Date().toISOString();
-
-  const current = await db
-    .prepare("SELECT visits FROM greeting_counts WHERE name = ?")
-    .bind(subject)
-    .first<number>("visits");
-
-  const next = (current ?? 0) + 1;
-
-  await db
+  const row = await db
     .prepare(
       `INSERT INTO greeting_counts (name, visits, updated_at)
-       VALUES (?, ?, ?)
+       VALUES (?, 1, ?)
        ON CONFLICT(name) DO UPDATE SET
-         visits = ?,
-         updated_at = excluded.updated_at`,
+         visits = greeting_counts.visits + 1,
+         updated_at = excluded.updated_at
+       RETURNING visits`,
     )
-    .bind(subject, next, timestamp, next)
-    .run();
+    .bind(subject, new Date().toISOString())
+    .first<number>("visits");
 
-  return next;
+  return row ?? 1;
 }
 
 export async function getHelloDemo(
@@ -62,7 +54,7 @@ export async function getHelloDemo(
     visits,
   };
 
-  await env.CACHE.put(cacheKey, JSON.stringify(payload));
+  await env.CACHE.put(cacheKey, JSON.stringify(payload), { expirationTtl: 300 });
 
   return {
     ...payload,
@@ -128,17 +120,15 @@ export async function handleDemoQueueBatch(
   env: Pick<DemoEnv, "DB">,
   batch: MessageBatch<QueueJob>,
 ): Promise<void> {
-  for (const message of batch.messages) {
-    const job = message.body;
-
-    await env.DB
+  const statements = batch.messages.map((message) =>
+    env.DB
       .prepare(
         `INSERT INTO job_receipts (id, name, message, created_at)
          VALUES (?, ?, ?, ?)`,
       )
-      .bind(job.id, job.name, job.message, job.createdAt)
-      .run();
-  }
+      .bind(message.body.id, message.body.name, message.body.message, message.body.createdAt),
+  );
 
+  await env.DB.batch(statements);
   batch.ackAll();
 }

@@ -3,7 +3,7 @@ import { createExecutionContext, createMessageBatch, getQueueResult } from "clou
 import { describe, expect, it } from "vitest";
 
 import worker from "../../src/worker";
-import type { QueueJob } from "../../shared/types/api";
+import type { HelloApiResponse, QueueJob } from "../../shared/types/api";
 
 describe("worker integration", () => {
   it("caches greeting responses through KV and D1", async () => {
@@ -20,13 +20,7 @@ describe("worker integration", () => {
       source: "d1",
     });
 
-    const cached = await env.CACHE.get<{
-      ok: true;
-      service: string;
-      subject: string;
-      message: string;
-      visits: number;
-    }>("hello:ada", "json");
+    const cached = await env.CACHE.get<Omit<HelloApiResponse, "source">>("hello:ada", "json");
     expect(cached).toEqual({
       ok: true,
       service: "cf-boilerplate",

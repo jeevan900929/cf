@@ -1,8 +1,6 @@
 import { createGreeting } from "../domain/greeting";
 import { SERVICE_NAME } from "../../shared/types/api";
 
-export { SERVICE_NAME };
-
 export interface HelloInput {
   name?: string | null;
 }

@@ -34,21 +34,8 @@ function text(body: string, init: ResponseInit = {}): Response {
 }
 
 async function readHelloName(request: Request): Promise<string | null> {
-  const contentType = request.headers.get("content-type") ?? "";
-
-  if (!contentType.includes("application/json")) {
-    return null;
-  }
-
-  const body = (await request.json().catch(() => null)) as
-    | { name?: unknown }
-    | null;
-
-  if (!body || typeof body !== "object") {
-    return null;
-  }
-
-  return typeof body.name === "string" ? body.name : null;
+  const body = await readJsonBody<{ name?: unknown }>(request);
+  return typeof body?.name === "string" ? body.name : null;
 }
 
 async function readJsonBody<T>(request: Request): Promise<T | null> {
@@ -74,11 +61,11 @@ function getR2DemoKey(pathname: string): string | null {
 
 export default {
   async fetch(request: Request, env: Env, _ctx: ExecutionContext): Promise<Response> {
-    const url = new URL(request.url);
-
     if (request.method === "OPTIONS") {
       return new Response(null, { status: 204, headers: createHeaders() });
     }
+
+    const url = new URL(request.url);
 
     if (request.method === "GET" && url.pathname === "/") {
       return text("Hello from Cloudflare Workers.", { status: 200 });
