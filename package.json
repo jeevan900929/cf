@@ -12,7 +12,7 @@
     "deploy:prod": "PULUMI_STACK_NAME=prod node scripts/deploy-worker.mjs",
     "deploy:worker": "npm run deploy:dev",
     "types": "wrangler types",
-    "check": "npm run deploy:dev -- --check",
+    "check": "npm run test && npm run typecheck",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:e2e": "playwright test",

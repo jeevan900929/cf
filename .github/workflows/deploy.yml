@@ -38,11 +38,14 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Run tests
+        run: npm run test && npm run typecheck
+
       - name: Apply Pulumi stack
         uses: pulumi/actions@v6
         with:
           command: up
-          stack-name: prod
+          stack-name: jeevanraj-angamuthu-ext-sadhguru-org/cf-boilerplate-infra/prod
           work-dir: infra/pulumi
 
       - name: Deploy Worker
