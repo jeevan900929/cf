@@ -1,13 +1,39 @@
 import { env, exports } from "cloudflare:workers";
 import { createExecutionContext, createMessageBatch, getQueueResult } from "cloudflare:test";
-import { describe, expect, it } from "vitest";
+import { beforeAll, describe, expect, it } from "vitest";
 
 import worker from "../../src/worker";
 import type { HelloApiResponse, QueueJob } from "../../shared/types/api";
 
+let authToken: string;
+
+async function loginForToken(): Promise<string> {
+  const response = await exports.default.fetch(
+    new Request("https://example.com/api/auth/login", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ username: "demo", password: "demo" }),
+    }),
+  );
+  const body = (await response.json()) as { ok: true; token: string };
+  return body.token;
+}
+
+function authHeaders(extra?: Record<string, string>): Headers {
+  const headers = new Headers(extra);
+  headers.set("Authorization", `Bearer ${authToken}`);
+  return headers;
+}
+
 describe("worker integration", () => {
+  beforeAll(async () => {
+    authToken = await loginForToken();
+  });
+
   it("caches greeting responses through KV and D1", async () => {
-    const request = new Request("https://example.com/api/hello?name=Ada");
+    const request = new Request("https://example.com/api/hello?name=Ada", {
+      headers: authHeaders(),
+    });
 
     const first = await exports.default.fetch(request);
     expect(first.status).toBe(200);
@@ -29,7 +55,11 @@ describe("worker integration", () => {
       visits: 1,
     });
 
-    const second = await exports.default.fetch(request);
+    const second = await exports.default.fetch(
+      new Request("https://example.com/api/hello?name=Ada", {
+        headers: authHeaders(),
+      }),
+    );
     expect(await second.json()).toEqual({
       ok: true,
       service: "cf-boilerplate",
@@ -52,6 +82,7 @@ describe("worker integration", () => {
     const put = await exports.default.fetch(
       new Request("https://example.com/api/demo/r2/pages.txt", {
         method: "PUT",
+        headers: authHeaders(),
         body: "Hello from Pages.",
       }),
     );
@@ -65,7 +96,9 @@ describe("worker integration", () => {
     });
 
     const get = await exports.default.fetch(
-      new Request("https://example.com/api/demo/r2/pages.txt"),
+      new Request("https://example.com/api/demo/r2/pages.txt", {
+        headers: authHeaders(),
+      }),
     );
 
     expect(get.status).toBe(200);
@@ -81,9 +114,7 @@ describe("worker integration", () => {
     const response = await exports.default.fetch(
       new Request("https://example.com/api/demo/queue", {
         method: "POST",
-        headers: {
-          "content-type": "application/json",
-        },
+        headers: authHeaders({ "content-type": "application/json" }),
         body: JSON.stringify({ name: "Ada" }),
       }),
     );
@@ -100,7 +131,7 @@ describe("worker integration", () => {
     });
   });
 
-  it("records queue receipts in D1", async () => {
+  it("records processed jobs in D1", async () => {
     const job = {
       id: "job-1",
       name: "Ada",
@@ -118,13 +149,13 @@ describe("worker integration", () => {
     ]);
     const ctx = createExecutionContext();
 
-    await worker.queue(batch, env as Env, ctx);
+    await worker.queue(batch, env as Env);
 
     const result = await getQueueResult(batch, ctx);
     expect(result.ackAll).toBe(true);
 
     const row = await env.DB.prepare(
-      "SELECT name, message FROM job_receipts WHERE id = ?",
+      "SELECT name, message FROM processed_jobs WHERE id = ?",
     )
       .bind("job-1")
       .first<{ name: string; message: string }>();

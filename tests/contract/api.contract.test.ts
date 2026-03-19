@@ -1,12 +1,32 @@
 import { exports } from "cloudflare:workers";
-import { describe, expect, it } from "vitest";
+import { beforeAll, describe, expect, it } from "vitest";
 
 import type { HelloApiResponse } from "../../shared/types/api";
 
+let authToken: string;
+
+async function loginForToken(): Promise<string> {
+  const response = await exports.default.fetch(
+    new Request("https://example.com/api/auth/login", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ username: "demo", password: "demo" }),
+    }),
+  );
+  const body = (await response.json()) as { ok: true; token: string };
+  return body.token;
+}
+
 describe("API contract", () => {
+  beforeAll(async () => {
+    authToken = await loginForToken();
+  });
+
   it("returns the hello response shape", async () => {
     const response = await exports.default.fetch(
-      new Request("https://example.com/api/hello?name=Cloudflare"),
+      new Request("https://example.com/api/hello?name=Cloudflare", {
+        headers: { Authorization: `Bearer ${authToken}` },
+      }),
     );
 
     expect(response.status).toBe(200);

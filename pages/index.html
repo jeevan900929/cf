@@ -15,195 +15,211 @@
         --accent: #7dd3fc;
         --shadow: 0 24px 80px rgba(2, 6, 23, 0.45);
       }
-
-      * {
-        box-sizing: border-box;
-      }
-
+      * { box-sizing: border-box; margin: 0; }
       body {
-        margin: 0;
-        min-height: 100vh;
-        display: grid;
-        place-items: center;
-        background:
-          radial-gradient(circle at top, rgba(56, 189, 248, 0.18), transparent 32%),
+        min-height: 100vh; display: grid; place-items: center;
+        background: radial-gradient(circle at top, rgba(56,189,248,.18), transparent 32%),
           linear-gradient(160deg, #050816 0%, var(--bg) 45%, #0f172a 100%);
         color: var(--text);
-        font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        font-family: Inter, ui-sans-serif, system-ui, -apple-system, sans-serif;
       }
-
       main {
-        width: min(92vw, 640px);
-        padding: 40px;
-        border: 1px solid var(--border);
-        border-radius: 24px;
-        background: var(--panel);
-        box-shadow: var(--shadow);
-        backdrop-filter: blur(18px);
+        width: min(94vw, 640px); padding: 36px;
+        border: 1px solid var(--border); border-radius: 24px;
+        background: var(--panel); box-shadow: var(--shadow); backdrop-filter: blur(18px);
       }
-
-      .eyebrow {
-        margin: 0 0 12px;
-        color: var(--accent);
-        text-transform: uppercase;
-        letter-spacing: 0.18em;
-        font-size: 0.78rem;
-        font-weight: 700;
-      }
-
-      h1 {
-        margin: 0;
-        font-size: clamp(2.6rem, 7vw, 4.6rem);
-        line-height: 0.95;
-      }
-
-      p {
-        margin: 20px 0 0;
-        color: var(--muted);
-        font-size: 1.02rem;
-        line-height: 1.7;
-      }
-
-      .status {
-        margin-top: 28px;
-        padding: 16px 18px;
-        border: 1px solid var(--border);
-        border-radius: 16px;
-        background: rgba(15, 23, 42, 0.56);
-        color: var(--text);
-        min-height: 56px;
-      }
-
-      .actions {
-        margin-top: 20px;
-        display: flex;
-        gap: 12px;
-        flex-wrap: wrap;
-      }
-
-      .log {
-        margin: 20px 0 0;
-        padding: 0;
-        list-style: none;
-        display: grid;
-        gap: 8px;
-      }
-
-      .log li {
-        padding: 12px 14px;
-        border: 1px solid var(--border);
-        border-radius: 14px;
-        background: rgba(15, 23, 42, 0.45);
-        color: var(--muted);
-      }
-
+      .eyebrow { color: var(--accent); text-transform: uppercase; letter-spacing: .18em; font-size: .76rem; font-weight: 700; margin-bottom: 8px; }
+      h1 { font-size: clamp(2.4rem, 7vw, 4rem); line-height: .95; }
+      p.sub { color: var(--muted); font-size: .95rem; line-height: 1.6; margin-top: 12px; }
+      .panel { margin-top: 20px; padding: 14px 16px; border: 1px solid var(--border); border-radius: 16px; background: rgba(15,23,42,.56); }
+      .panel h3 { font-size: .82rem; text-transform: uppercase; letter-spacing: .12em; color: var(--accent); margin-bottom: 10px; }
+      .actions { margin-top: 16px; display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
       button {
-        appearance: none;
-        border: 0;
-        border-radius: 999px;
-        padding: 12px 18px;
-        font: inherit;
-        font-weight: 700;
-        color: #020617;
-        background: linear-gradient(135deg, #7dd3fc 0%, #a78bfa 100%);
-        cursor: pointer;
+        appearance: none; border: 0; border-radius: 999px; padding: 10px 16px;
+        font: inherit; font-size: .88rem; font-weight: 700; color: #020617;
+        background: linear-gradient(135deg, #7dd3fc, #a78bfa); cursor: pointer;
       }
-
-      code {
-        color: #bae6fd;
+      button:disabled { opacity: .4; cursor: default; }
+      button.sm { padding: 8px 14px; font-size: .82rem; }
+      button.danger { background: linear-gradient(135deg, #f87171, #fb923c); }
+      input {
+        background: rgba(15,23,42,.7); border: 1px solid var(--border); border-radius: 10px;
+        padding: 8px 12px; color: var(--text); font: inherit; font-size: .9rem; width: 140px;
       }
+      #room-state { color: var(--muted); font-size: .9rem; margin-top: 8px; }
+      #config-flags { color: var(--muted); font-size: .88rem; }
+      .log { margin-top: 20px; padding: 0; list-style: none; display: grid; gap: 6px; max-height: 220px; overflow-y: auto; }
+      .log li { padding: 10px 12px; border: 1px solid var(--border); border-radius: 12px; background: rgba(15,23,42,.45); color: var(--muted); font-size: .84rem; }
+      code { color: #bae6fd; }
+      [hidden] { display: none !important; }
     </style>
   </head>
   <body>
     <main>
       <p class="eyebrow">Cloudflare Pages</p>
       <h1>Hello from Cloudflare</h1>
-      <p>
-        This starter keeps the hello-world feel while exercising D1, KV, R2,
-        and Queue through a tiny Worker API.
-      </p>
-      <div class="status" id="status" aria-live="polite">Loading greeting…</div>
-      <div class="actions">
-        <button id="reload" type="button">Reload greeting</button>
-        <button id="save-r2" type="button">Save R2 note</button>
-        <button id="send-queue" type="button">Send queue job</button>
-      </div>
-      <ul class="log" id="log" aria-live="polite"></ul>
+      <p class="sub">Exercises JWT auth, Durable Objects, D1, KV, R2, Queue, and WebSocket.</p>
+
+      <!-- Login -->
+      <section id="auth-panel">
+        <div class="panel">
+          <h3>Login</h3>
+          <div class="actions">
+            <input id="username" value="demo" placeholder="username">
+            <input id="password" type="password" value="demo" placeholder="password">
+            <button id="login-btn">Login</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- Dashboard -->
+      <section id="dashboard" hidden>
+        <div class="panel" id="config-panel">
+          <h3>Config (KV)</h3>
+          <div id="config-flags">Loading...</div>
+        </div>
+
+        <div class="panel" id="room-panel">
+          <h3>Durable Object Room</h3>
+          <div class="actions">
+            <input id="room-name" value="lobby" placeholder="room name">
+            <button id="join-room" class="sm">Join</button>
+          </div>
+          <div id="room-state">Not connected</div>
+          <div class="actions">
+            <button id="decrement" class="sm" disabled>-</button>
+            <button id="increment" class="sm" disabled>+</button>
+            <button id="reset" class="sm danger" disabled>Reset</button>
+          </div>
+        </div>
+
+        <div class="actions">
+          <button id="save-r2">Save R2 note</button>
+          <button id="send-queue">Send queue job</button>
+        </div>
+
+        <ul class="log" id="log" aria-live="polite"></ul>
+      </section>
     </main>
+
     <script>
-      const status = document.getElementById("status");
-      const reload = document.getElementById("reload");
-      const saveR2 = document.getElementById("save-r2");
-      const sendQueue = document.getElementById("send-queue");
-      const log = document.getElementById("log");
-      const apiBaseUrl = document.documentElement.dataset.apiBaseUrl || "/api";
-      const apiRoot = apiBaseUrl.replace(/\/$/, "");
-      const apiHelloUrl = `${apiRoot}/hello?name=Cloudflare`;
-      const apiR2Url = `${apiRoot}/demo/r2/pages.txt`;
-      const apiQueueUrl = `${apiRoot}/demo/queue`;
+      const $ = id => document.getElementById(id);
+      const apiRoot = (document.documentElement.dataset.apiBaseUrl || "/api").replace(/\/$/, "");
+      let token = null;
+      let ws = null;
 
-      function appendLog(line) {
-        const item = document.createElement("li");
-        item.textContent = line;
-        log.prepend(item);
+      function log(msg) {
+        const li = document.createElement("li");
+        li.textContent = `${new Date().toLocaleTimeString()} - ${msg}`;
+        $("log").prepend(li);
       }
 
-      async function loadGreeting() {
-        status.textContent = "Loading greeting…";
-
-        try {
-          const response = await fetch(apiHelloUrl);
-          if (!response.ok) {
-            throw new Error(`HTTP ${response.status}`);
-          }
-
-          const data = await response.json();
-          status.innerHTML = `API says: <code>${data.message}</code> · source <code>${data.source}</code>`;
-          appendLog(`Greeting visits: ${data.visits}`);
-        } catch (error) {
-          const message =
-            error instanceof Error ? error.message : "Unknown error";
-          status.textContent = `API unavailable: ${message}`;
-        }
+      function authHeaders(extra = {}) {
+        return { ...extra, Authorization: `Bearer ${token}` };
       }
 
-      async function saveR2Note() {
-        try {
-          const response = await fetch(apiR2Url, {
-            method: "PUT",
-            body: "Hello from Pages.",
-          });
-          const data = await response.json();
-          appendLog(`R2 saved ${data.key} (${data.size} bytes)`);
-        } catch (error) {
-          const message =
-            error instanceof Error ? error.message : "Unknown error";
-          appendLog(`R2 error: ${message}`);
-        }
+      async function api(method, path, body) {
+        const opts = { method, headers: authHeaders({ "content-type": "application/json" }) };
+        if (body !== undefined) opts.body = typeof body === "string" ? body : JSON.stringify(body);
+        if (method === "PUT" && typeof body === "string") opts.headers["content-type"] = "text/plain";
+        const res = await fetch(`${apiRoot}${path}`, opts);
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || `HTTP ${res.status}`);
+        return data;
       }
 
-      async function sendQueueJob() {
+      // --- Auth ---
+      $("login-btn").addEventListener("click", async () => {
         try {
-          const response = await fetch(apiQueueUrl, {
+          const data = await (await fetch(`${apiRoot}/auth/login`, {
             method: "POST",
-            headers: {
-              "content-type": "application/json",
-            },
-            body: JSON.stringify({ name: "Pages" }),
-          });
-          const data = await response.json();
-          appendLog(`Queue job ${data.job.id} queued`);
-        } catch (error) {
-          const message =
-            error instanceof Error ? error.message : "Unknown error";
-          appendLog(`Queue error: ${message}`);
-        }
+            headers: { "content-type": "application/json" },
+            body: JSON.stringify({ username: $("username").value, password: $("password").value }),
+          })).json();
+          if (!data.ok) throw new Error(data.error || "Login failed");
+          token = data.token;
+          $("auth-panel").hidden = true;
+          $("dashboard").hidden = false;
+          log(`Logged in (expires in ${data.expiresIn})`);
+          loadConfig();
+          loadGreeting();
+        } catch (e) { log(`Login error: ${e.message}`); }
+      });
+
+      // --- Config ---
+      async function loadConfig() {
+        try {
+          const data = await api("GET", "/config");
+          const flags = Object.entries(data.config)
+            .map(([k, v]) => `<code>${k}</code>: ${v ? "on" : "off"}`).join(" | ");
+          $("config-flags").innerHTML = flags;
+          log("Config loaded");
+        } catch (e) { $("config-flags").textContent = `Error: ${e.message}`; }
       }
 
-      reload.addEventListener("click", loadGreeting);
-      saveR2.addEventListener("click", saveR2Note);
-      sendQueue.addEventListener("click", sendQueueJob);
-      loadGreeting();
+      // --- Greeting ---
+      async function loadGreeting() {
+        try {
+          const data = await api("GET", "/hello?name=Cloudflare");
+          log(`Greeting: ${data.message} (visits: ${data.visits}, source: ${data.source})`);
+        } catch (e) { log(`Greeting error: ${e.message}`); }
+      }
+
+      // --- Room / WebSocket ---
+      function wsUrl(path) {
+        const base = apiRoot.startsWith("http") ? apiRoot : `${location.origin}${apiRoot}`;
+        return base.replace(/^https:/, "wss:").replace(/^http:/, "ws:") + path;
+      }
+
+      function setRoomButtons(on) {
+        ["increment", "decrement", "reset"].forEach(id => $(id).disabled = !on);
+      }
+
+      $("join-room").addEventListener("click", () => {
+        if (ws) { ws.close(); ws = null; }
+        const room = $("room-name").value || "lobby";
+        const url = wsUrl(`/rooms/${encodeURIComponent(room)}/websocket`);
+        $("room-state").textContent = "Connecting...";
+        ws = new WebSocket(url, [token]);
+        ws.onopen = () => { $("room-state").textContent = "Connected"; setRoomButtons(true); log(`Joined room: ${room}`); };
+        ws.onmessage = (e) => {
+          try {
+            const msg = JSON.parse(e.data);
+            if (msg.type === "state" || msg.type === "update") {
+              $("room-state").textContent = `Count: ${msg.count} | Clients: ${msg.connectedClients}`;
+            }
+            if (msg.type === "update") log(`Room ${msg.action}: count=${msg.count}`);
+          } catch { /* ignore non-JSON */ }
+        };
+        ws.onclose = () => { $("room-state").textContent = "Disconnected"; setRoomButtons(false); log("WebSocket closed"); ws = null; };
+        ws.onerror = () => { log("WebSocket error"); };
+      });
+
+      async function roomAction(type) {
+        const room = $("room-name").value || "lobby";
+        try {
+          const data = await api("POST", `/rooms/${encodeURIComponent(room)}/action`, { type });
+          log(`Room ${type}: count=${data.count}`);
+        } catch (e) { log(`Room error: ${e.message}`); }
+      }
+      $("increment").addEventListener("click", () => roomAction("increment"));
+      $("decrement").addEventListener("click", () => roomAction("decrement"));
+      $("reset").addEventListener("click", () => roomAction("reset"));
+
+      // --- Demos ---
+      $("save-r2").addEventListener("click", async () => {
+        try {
+          const data = await api("PUT", "/demo/r2/pages.txt", "Hello from Pages.");
+          log(`R2 saved ${data.key} (${data.size} bytes)`);
+        } catch (e) { log(`R2 error: ${e.message}`); }
+      });
+
+      $("send-queue").addEventListener("click", async () => {
+        try {
+          const data = await api("POST", "/demo/queue", { name: "Pages" });
+          log(`Queue job ${data.job.id} queued`);
+        } catch (e) { log(`Queue error: ${e.message}`); }
+      });
     </script>
   </body>
 </html>
