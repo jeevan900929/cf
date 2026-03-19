@@ -3,6 +3,7 @@ name: Deploy to Cloudflare
 on:
   push:
     branches: [main]
+  workflow_dispatch:
 
 concurrency:
   group: deploy-main
@@ -32,12 +33,14 @@ jobs:
               - 'scripts/deploy-worker.mjs'
               - 'scripts/utils.mjs'
               - 'infra/**'
+              - '.github/workflows/**'
             pages:
               - 'pages/**'
               - 'shared/**'
               - 'scripts/deploy-pages.mjs'
               - 'scripts/utils.mjs'
               - 'infra/**'
+              - '.github/workflows/**'
 
   test:
     needs: changes
