@@ -1,155 +1,115 @@
 # CF Boilerplate
 
-Cloudflare-first starter for a Worker API, a Pages frontend, shared storage
-resources, and Pulumi-managed infrastructure.
+Cloudflare-first starter with two environments: a local dev environment backed
+by Miniflare and a production environment deployed to Cloudflare on every push
+to `main`.
 
-## What is here
+## Structure
 
-- `src/domain` keeps the greeting logic pure and testable.
-- `src/application` shapes the API response.
-- `src/services` holds the D1, KV, R2, and Queue helpers.
-- `src/worker.ts` is the Cloudflare Worker entrypoint.
-- `pages/index.html` is the static Pages frontend.
-- `migrations` holds the D1 schema.
-- `infra/pulumi` provisions the Cloudflare resources.
-- `tests` covers unit, contract, integration, and browser-level checks.
+| Path | Purpose |
+|---|---|
+| `src/domain` | Pure greeting logic, fully unit-testable |
+| `src/application` | API response shaping |
+| `src/services` | D1, KV, R2, and Queue helpers |
+| `src/worker.ts` | Cloudflare Worker entrypoint |
+| `pages/index.html` | Static Pages frontend |
+| `migrations/` | D1 schema migrations |
+| `infra/pulumi/` | Pulumi program that provisions prod resources |
+| `tests/` | Unit, contract, integration, and browser tests |
+| `scripts/deploy-worker.mjs` | Prod deploy: injects Pulumi outputs → Wrangler |
 
 ## Prerequisites
 
-- Node.js 20+.
-- `wrangler` installed globally.
-- `pulumi` CLI installed globally.
+- Node.js 20+
 
 ## Install
 
 ```bash
 npm install
+npm run types   # generate Worker binding types from wrangler.jsonc
 ```
 
-Then generate the Worker env types:
-
-```bash
-npm run types
-```
-
-## Run locally
+## Local dev
 
 ```bash
 npm run dev
 ```
 
-That starts the Worker locally.
+This runs two native Wrangler processes in parallel:
 
-For the Pages shell, run:
+- **Worker API** at `http://localhost:8787` — hot-reloads on save; D1
+  migrations in `migrations/` are applied automatically on start.
+- **Pages site** at `http://localhost:8788` — serves `pages/index.html` and
+  proxies API calls to the Worker.
 
-```bash
-npm run pages:dev
-```
+Everything runs locally through Miniflare. No Cloudflare account or Pulumi
+is needed for local dev.
 
 ## Tests
 
-Fast checks run the Worker tests inside Cloudflare's local runtime via the
-Miniflare-backed Vitest integration and apply the D1 migrations automatically:
-
 ```bash
-npm test
+npm test           # unit + contract + integration (Miniflare-backed Vitest)
+npm run test:e2e   # Playwright browser smoke test
+npm run test:all   # both
+npm run check      # tests + typecheck (same gate as CI)
 ```
 
-Browser-level smoke test:
+## Production deploy
 
-```bash
-npm run test:e2e
-```
+Every push to `main` triggers the GitHub Actions workflow which:
 
-Full suite:
+1. Runs `npm run check` (tests + typecheck).
+2. Runs `pulumi up` on the `prod` stack to provision or update Cloudflare
+   resources (D1, KV, R2, Queue, Pages project).
+3. Runs `npm run deploy` which reads Pulumi outputs, generates a Wrangler
+   config with the real resource IDs, deploys the Worker, then deploys the
+   Pages site.
 
-```bash
-npm run test:all
-```
+### Required GitHub secret
 
-## Deploy
+| Secret | Value |
+|---|---|
+| `CLOUDFLARE_API_TOKEN` | A Cloudflare API token with Workers, Pages, D1, KV, R2, and Queue permissions |
 
-### Worker
+### First-time Pulumi setup
 
-`npm run deploy:dev` reads the latest outputs from the local `dev` Pulumi stack, renders
-a transient Wrangler config with the provisioned Cloudflare resource IDs, validates it,
-and deploys the Worker.
-
-For local deploys, make sure the `dev` stack is current first:
-
-```bash
-cd infra/pulumi
-pulumi stack init dev
-pulumi stack select dev
-pulumi up
-```
-
-### Automatic deploys
-
-Every push to `main` runs the `prod` stack in GitHub Actions. Pulumi auth happens
-through GitHub OIDC, so the only repository secret you need for deployment is
-`CLOUDFLARE_API_TOKEN`.
-
-Before the workflow can run, register GitHub as an OIDC issuer in Pulumi and
-allow this repo to exchange tokens for the `jeevanraj-angamuthu-ext-sadhguru-org`
-account. This Pulumi account uses a personal OIDC token, so the policy must allow
-`urn:pulumi:token-type:access_token:personal` scoped to
-`user:jeevanraj-angamuthu-ext-sadhguru-org`.
-
-### Pages
-
-```bash
-npm run pages:deploy
-```
-
-### Pulumi infra
-
-Set the Pulumi config values on the stack you are targeting. `dev` powers local
-deploys and `prod` powers the GitHub Action on `main`:
-
-GitHub Actions authenticates to Pulumi with OIDC, so you do not need a
-`PULUMI_ACCESS_TOKEN` secret anymore.
+The `prod` Pulumi stack is the only stack. There is no `dev` stack — local
+development uses Miniflare exclusively.
 
 ```bash
 cd infra/pulumi
 pulumi login
-pulumi stack init dev
 pulumi stack init prod
 pulumi stack select prod
 pulumi config set accountId <CLOUDFLARE_ACCOUNT_ID>
-pulumi config set projectName cf-boilerplate
-pulumi config set workerScriptName cf-boilerplate-api
-```
-
-The Cloudflare API token is **not** stored in Pulumi config. The Pulumi Cloudflare
-provider reads `CLOUDFLARE_API_TOKEN` from the environment directly. Set this
-environment variable locally and add it as a `CLOUDFLARE_API_TOKEN` repository
-secret in GitHub for CI deployments.
-
-`zoneId` and `domainName` are optional. Only set them if you want Pulumi to also
-manage a custom Worker route like `api.example.com/*`. If you omit them, the prod
-stack still deploys all account-level resources and the Worker script itself.
-
-If you later want the custom route, add:
-
-```bash
-pulumi config set zoneId <CLOUDFLARE_ZONE_ID>
+# optional: add a custom route
+pulumi config set zoneId    <CLOUDFLARE_ZONE_ID>
 pulumi config set domainName <YOUR_DOMAIN>
-```
-
-Then apply the stack:
-
-```bash
-cd infra/pulumi
 pulumi up
 ```
 
+The Cloudflare API token is **not** stored in Pulumi config. Set
+`CLOUDFLARE_API_TOKEN` in your shell for local `pulumi up`, and add it as a
+repository secret for CI.
+
+### Pulumi OIDC (CI)
+
+CI authenticates to Pulumi via GitHub OIDC — no `PULUMI_ACCESS_TOKEN` secret
+required. The OIDC trust policy must allow
+`urn:pulumi:token-type:access_token:personal` scoped to
+`user:jeevanraj-angamuthu-ext-sadhguru-org`.
+
+## Live endpoints (prod)
+
+| | URL |
+|---|---|
+| Worker API | `https://cf-boilerplate-api.cf-boilerplate.workers.dev` |
+| Pages site | `https://cf-boilerplate-web.pages.dev` |
+
 ## Notes
 
-- The Worker currently answers `GET /`, `GET /health`, `GET|POST /api/hello`,
-  `GET|PUT|DELETE /api/demo/r2/:key`, and `POST /api/demo/queue`.
-- The Pages frontend exercises the hello route and exposes the R2/Queue demos.
-- The Pulumi stack creates the D1 database, KV namespace, R2 bucket, Queue,
-  Pages project shell, and an optional Worker route when a custom zone is set.
-- The Miniflare/Vitest setup loads `migrations/0001_init.sql` before the tests.
-- Run `npm run types` again whenever the Worker bindings change.
+- Worker routes: `GET /health`, `GET|POST /api/hello`,
+  `GET|PUT|DELETE /api/demo/r2/:key`, `POST /api/demo/queue`.
+- Run `npm run types` after changing bindings in `wrangler.jsonc`.
+- `wrangler.jsonc` contains placeholder IDs for local dev; `scripts/deploy-worker.mjs`
+  replaces them with real Pulumi output values before every prod deploy.

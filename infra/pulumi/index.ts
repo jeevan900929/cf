@@ -84,5 +84,4 @@ export const uploadsBucketName = uploadsBucket.name;
 export const queueName = jobsQueue.queueName;
 export const queueId = jobsQueue.queueId;
 export const pagesProjectName = pagesProject.name;
-export const apiRoutePattern = pulumi.output(apiRoute?.pattern);
 export { accountId, projectName, workerScriptName };

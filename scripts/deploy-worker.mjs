@@ -10,7 +10,7 @@ const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), ".."
 const pulumiDir = path.join(repoRoot, "infra", "pulumi");
 const baseConfigPath = path.join(repoRoot, "wrangler.jsonc");
 const generatedConfigPath = path.join(repoRoot, ".wrangler.deploy.jsonc");
-const stackName = process.env.PULUMI_STACK_NAME ?? "dev";
+const stackName = process.env.PULUMI_STACK_NAME ?? "prod";
 const dryRun = process.argv.includes("--check") || process.argv.includes("--dry-run");
 
 function parseJson(text, label) {
@@ -149,6 +149,13 @@ async function main() {
 
   console.log("Deploying Worker...");
   await run("wrangler", ["deploy", "--config", generatedConfigPath]);
+
+  const pagesProjectName = outputs.pagesProjectName;
+
+  if (pagesProjectName) {
+    console.log(`Deploying Pages site to "${pagesProjectName}"...`);
+    await run("wrangler", ["pages", "deploy", "pages", "--project-name", pagesProjectName]);
+  }
 }
 
 main().catch((error) => {

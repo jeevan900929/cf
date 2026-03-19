@@ -6,11 +6,8 @@
     "infra/pulumi"
   ],
   "scripts": {
-    "dev": "wrangler dev",
+    "dev": "wrangler pages dev pages --port 8788 -- wrangler dev --port 8787",
     "deploy": "node scripts/deploy-worker.mjs",
-    "deploy:dev": "PULUMI_STACK_NAME=dev node scripts/deploy-worker.mjs",
-    "deploy:prod": "PULUMI_STACK_NAME=prod node scripts/deploy-worker.mjs",
-    "deploy:worker": "npm run deploy:dev",
     "types": "wrangler types",
     "check": "npm run test && npm run typecheck",
     "test": "vitest run",
@@ -18,8 +15,6 @@
     "test:e2e": "playwright test",
     "test:all": "npm run test && npm run test:e2e",
     "typecheck": "tsc -p tsconfig.json --noEmit",
-    "pages:dev": "wrangler pages dev pages --port 8788",
-    "pages:deploy": "wrangler pages deploy pages",
     "pulumi:preview": "cd infra/pulumi && pulumi preview",
     "pulumi:up": "cd infra/pulumi && pulumi up",
     "pulumi:destroy": "cd infra/pulumi && pulumi destroy"

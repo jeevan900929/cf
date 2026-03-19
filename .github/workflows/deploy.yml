@@ -48,5 +48,5 @@ jobs:
           stack-name: jeevanraj-angamuthu-ext-sadhguru-org/cf-boilerplate-infra/prod
           work-dir: infra/pulumi
 
-      - name: Deploy Worker
-        run: npm run deploy:prod
+      - name: Deploy
+        run: npm run deploy
