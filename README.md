@@ -92,7 +92,9 @@ through GitHub OIDC, so the only repository secret you need for deployment is
 
 Before the workflow can run, register GitHub as an OIDC issuer in Pulumi and
 allow this repo to exchange tokens for the `jeevanraj-angamuthu-ext-sadhguru-org`
-account.
+account. This Pulumi account uses a personal OIDC token, so the policy must allow
+`urn:pulumi:token-type:access_token:personal` scoped to
+`user:jeevanraj-angamuthu-ext-sadhguru-org`.
 
 ### Pages
 
