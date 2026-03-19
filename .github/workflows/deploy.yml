@@ -26,7 +26,8 @@ jobs:
         uses: pulumi/auth-actions@v1
         with:
           organization: jeevanraj-angamuthu-ext-sadhguru-org
-          requested-token-type: urn:pulumi:token-type:access_token:organization
+          requested-token-type: urn:pulumi:token-type:access_token:personal
+          scope: user:jeevanraj-angamuthu-ext-sadhguru-org
 
       - name: Set up Node.js
         uses: actions/setup-node@v4
