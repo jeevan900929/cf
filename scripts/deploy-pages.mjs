@@ -32,7 +32,8 @@ async function main() {
   console.log(`Baked Worker URL ${workerUrl} into pages/index.html.`);
 
   console.log(`Deploying Pages site to "${pagesProjectName}"...`);
-  await run("wrangler", ["pages", "deploy", "pages", "--project-name", pagesProjectName]);
+  const pagesDir = path.join(repoRoot, "pages");
+  await run("wrangler", ["pages", "deploy", ".", "--project-name", pagesProjectName, "--commit-dirty=true"], pagesDir);
 }
 
 main().catch((error) => {
