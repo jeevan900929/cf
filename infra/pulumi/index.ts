@@ -5,8 +5,8 @@ const config = new pulumi.Config();
 
 const accountId = config.require("accountId");
 const apiToken = config.requireSecret("apiToken");
-const zoneId = config.require("zoneId");
-const domainName = config.require("domainName");
+const zoneId = config.get("zoneId");
+const domainName = config.get("domainName");
 const projectName = config.get("projectName") ?? "cf-boilerplate";
 const workerScriptName = config.get("workerScriptName") ?? "cf-boilerplate-api";
 
@@ -62,15 +62,22 @@ const pagesProject = new cloudflare.PagesProject(
   { provider },
 );
 
-const apiRoute = new cloudflare.WorkersRoute(
-  "apiRoute",
-  {
-    zoneId,
-    pattern: `api.${domainName}/*`,
-    script: workerScriptName,
-  },
-  { provider },
-);
+if ((zoneId && !domainName) || (!zoneId && domainName)) {
+  throw new Error("zoneId and domainName must be set together when using a custom zone.");
+}
+
+const apiRoute =
+  zoneId && domainName
+    ? new cloudflare.WorkersRoute(
+        "apiRoute",
+        {
+          zoneId,
+          pattern: `api.${domainName}/*`,
+          script: workerScriptName,
+        },
+        { provider },
+      )
+    : undefined;
 
 export const databaseId = d1Database.uuid;
 export const databaseName = d1Database.name;
@@ -79,5 +86,5 @@ export const uploadsBucketName = uploadsBucket.name;
 export const queueName = jobsQueue.queueName;
 export const queueId = jobsQueue.queueId;
 export const pagesProjectName = pagesProject.name;
-export const apiRoutePattern = apiRoute.pattern;
+export const apiRoutePattern = pulumi.output(apiRoute?.pattern);
 export { accountId, projectName, workerScriptName };

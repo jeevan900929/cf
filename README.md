@@ -118,14 +118,23 @@ pulumi stack init prod
 pulumi stack select dev
 pulumi config set accountId <CLOUDFLARE_ACCOUNT_ID>
 pulumi config set --secret apiToken <CLOUDFLARE_API_TOKEN>
-pulumi config set zoneId <CLOUDFLARE_ZONE_ID>
-pulumi config set domainName <YOUR_DOMAIN>
 pulumi config set projectName cf-boilerplate
 pulumi config set workerScriptName cf-boilerplate-api
 ```
 
 Repeat the same config commands after `pulumi stack select prod` so the production
 stack has matching values.
+
+`zoneId` and `domainName` are optional. Only set them if you want Pulumi to also
+manage a custom Worker route like `api.example.com/*`. If you omit them, the prod
+stack still deploys all account-level resources and the Worker script itself.
+
+If you later want the custom route, add:
+
+```bash
+pulumi config set zoneId <CLOUDFLARE_ZONE_ID>
+pulumi config set domainName <YOUR_DOMAIN>
+```
 
 Then apply the stack:
 
@@ -140,6 +149,6 @@ pulumi up
   `GET|PUT|DELETE /api/demo/r2/:key`, and `POST /api/demo/queue`.
 - The Pages frontend exercises the hello route and exposes the R2/Queue demos.
 - The Pulumi stack creates the D1 database, KV namespace, R2 bucket, Queue,
-  Pages project shell, and Worker route.
+  Pages project shell, and an optional Worker route when a custom zone is set.
 - The Miniflare/Vitest setup loads `migrations/0001_init.sql` before the tests.
 - Run `npm run types` again whenever the Worker bindings change.
