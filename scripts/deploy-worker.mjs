@@ -131,6 +131,9 @@ async function main() {
   console.log(`Loading Pulumi outputs from stack "${stackName}"...`);
   const outputs = await loadPulumiOutputs();
 
+  // Make account ID available to all wrangler sub-processes (needed for pages deploy).
+  process.env.CLOUDFLARE_ACCOUNT_ID = requireString(outputs.accountId, "Pulumi output accountId");
+
   const baseConfig = parseJson(await readFile(baseConfigPath, "utf8"), "wrangler.jsonc");
   const generatedConfig = buildWranglerConfig(baseConfig, outputs);
 
