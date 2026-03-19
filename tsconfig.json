@@ -16,6 +16,7 @@
     "shared/**/*.ts",
     "tests/**/*.ts",
     "tests/**/*.d.ts",
-    "worker-configuration.d.ts"
+    "worker-configuration.d.ts",
+    "crates/core/pkg/*.d.ts"
   ]
 }

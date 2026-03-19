@@ -1,5 +1,4 @@
-import { buildHelloResponse } from "../application/hello";
-import { normalizeSubject } from "../domain/greeting";
+import { buildHelloResponse, normalizeSubject } from "../wasm";
 import type { ArtifactApiResponse, HelloApiResponse, QueueJob } from "../../shared/types/api";
 
 const HELLO_CACHE_PREFIX = "hello";
@@ -50,7 +49,7 @@ export async function getHelloDemo(
 
   const visits = await upsertGreetingCount(env.DB, subject);
   const payload: HelloPayload = {
-    ...buildHelloResponse({ name: subject }),
+    ...buildHelloResponse(subject),
     visits,
   };
 
@@ -107,7 +106,7 @@ export async function enqueueDemoJob(
   const job = {
     id: crypto.randomUUID(),
     name: subject,
-    message: buildHelloResponse({ name: subject }).message,
+    message: buildHelloResponse(subject).message,
     createdAt: new Date().toISOString(),
   };
 

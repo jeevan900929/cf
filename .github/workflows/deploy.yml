@@ -31,6 +31,7 @@ jobs:
             worker:
               - 'src/**'
               - 'shared/**'
+              - 'crates/**'
               - 'wrangler.jsonc'
               - 'migrations/**'
               - 'scripts/deploy-worker.mjs'
@@ -51,6 +52,19 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: wasm32-unknown-unknown
+      - uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            crates/core/target
+          key: cargo-${{ runner.os }}-${{ hashFiles('crates/core/Cargo.lock') }}
+          restore-keys: cargo-${{ runner.os }}-
+      - run: cargo test --manifest-path crates/core/Cargo.toml
+      - run: npm run build:wasm
       - uses: actions/setup-node@v4
         with:
           node-version: 22
@@ -101,6 +115,17 @@ jobs:
       PULUMI_OUTPUTS_JSON: ${{ needs.infra.outputs.stack_outputs }}
     steps:
       - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: wasm32-unknown-unknown
+      - uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            crates/core/target
+          key: cargo-${{ runner.os }}-${{ hashFiles('crates/core/Cargo.lock') }}
+          restore-keys: cargo-${{ runner.os }}-
       - uses: actions/setup-node@v4
         with:
           node-version: 22
