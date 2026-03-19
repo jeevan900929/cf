@@ -164,7 +164,7 @@
         try {
           const data = await api("GET", "/config");
           const flags = Object.entries(data.config)
-            .map(([k, v]) => `<code>${k}</code>: ${v ? "on" : "off"}`).join(" | ");
+            .map(([k, v]) => `<code>${k}</code>: ${typeof v === "boolean" ? (v ? "on" : "off") : v}`).join(" | ");
           $("config-flags").innerHTML = flags;
           log("Config loaded");
         } catch (e) { $("config-flags").textContent = `Error: ${e.message}`; }
@@ -191,9 +191,9 @@
       $("join-room").addEventListener("click", () => {
         if (ws) { ws.close(); ws = null; }
         const room = $("room-name").value || "lobby";
-        const url = wsUrl(`/rooms/${encodeURIComponent(room)}/websocket`);
+        const url = wsUrl(`/rooms/${encodeURIComponent(room)}/websocket?token=${encodeURIComponent(token)}`);
         $("room-state").textContent = "Connecting...";
-        ws = new WebSocket(url, [token]);
+        ws = new WebSocket(url);
         ws.onopen = () => { $("room-state").textContent = "Connected"; setRoomButtons(true); log(`Joined room: ${room}`); };
         ws.onmessage = (e) => {
           try {

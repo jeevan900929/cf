@@ -121,6 +121,27 @@ async function handleRequest(request: Request, env: Env): Promise<Response> {
       }
     }
 
+    // --- WebSocket upgrade (before auth middleware; uses ?token= query param) ---
+
+    const roomId = getRoomId(pathname);
+    if (roomId && getRoomSubpath(pathname) === "/websocket" && request.headers.get("Upgrade") === "websocket") {
+      const wsToken = url.searchParams.get("token");
+      if (!wsToken) return json({ ok: false, error: "Missing token", edge }, { status: 401 });
+      try {
+        const wsUser = await authenticate(
+          new Request(request.url, { headers: { Authorization: `Bearer ${wsToken}` } }),
+          env.CACHE,
+        );
+        const id = env.ROOMS.idFromName(roomId);
+        const stub = env.ROOMS.get(id);
+        return stub.fetch(new Request("https://do/websocket?actor=" + encodeURIComponent(wsUser.sub), {
+          headers: request.headers,
+        }));
+      } catch {
+        return json({ ok: false, error: "Invalid token", edge }, { status: 401 });
+      }
+    }
+
     // --- Authenticated routes ---
 
     let user: { sub: string };
@@ -144,19 +165,12 @@ async function handleRequest(request: Request, env: Env): Promise<Response> {
       return json({ ...(await getHelloDemo(env, body?.name)), edge });
     }
 
-    // --- Room routes ---
+    // --- Room routes (WebSocket handled above, before auth middleware) ---
 
-    const roomId = getRoomId(pathname);
     if (roomId) {
       const id = env.ROOMS.idFromName(roomId);
       const stub = env.ROOMS.get(id);
       const subpath = getRoomSubpath(pathname);
-
-      if (subpath === "/websocket" && request.headers.get("Upgrade") === "websocket") {
-        return stub.fetch(new Request("https://do/websocket?actor=" + encodeURIComponent(user.sub), {
-          headers: request.headers,
-        }));
-      }
 
       if (request.method === "POST" && subpath === "/action") {
         const doRes = await stub.fetch(new Request("https://do/action?actor=" + encodeURIComponent(user.sub), {
