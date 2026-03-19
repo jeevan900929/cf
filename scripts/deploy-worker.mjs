@@ -156,9 +156,50 @@ async function main() {
   const pagesProjectName = outputs.pagesProjectName;
 
   if (pagesProjectName) {
+    const workerUrl = await resolveWorkerUrl(outputs.accountId, outputs.workerScriptName);
+    await setPagesEnvVar(outputs.accountId, pagesProjectName, "API_WORKER_URL", workerUrl);
+
     console.log(`Deploying Pages site to "${pagesProjectName}"...`);
     await run("wrangler", ["pages", "deploy", "pages", "--project-name", pagesProjectName]);
   }
+}
+
+async function cfApi(method, path, body) {
+  const apiToken = requireString(process.env.CLOUDFLARE_API_TOKEN, "CLOUDFLARE_API_TOKEN env var");
+  const response = await fetch(`https://api.cloudflare.com/client/v4${path}`, {
+    method,
+    headers: {
+      Authorization: `Bearer ${apiToken}`,
+      "Content-Type": "application/json",
+    },
+    body: body !== undefined ? JSON.stringify(body) : undefined,
+  });
+
+  const data = await response.json();
+
+  if (!data.success) {
+    throw new Error(`Cloudflare API ${method} ${path} failed: ${JSON.stringify(data.errors)}`);
+  }
+
+  return data.result;
+}
+
+async function resolveWorkerUrl(accountId, workerScriptName) {
+  const result = await cfApi("GET", `/accounts/${accountId}/workers/subdomain`);
+  const subdomain = requireString(result?.subdomain, "workers.dev subdomain");
+  const url = `https://${workerScriptName}.${subdomain}.workers.dev`;
+  console.log(`Worker URL: ${url}`);
+  return url;
+}
+
+async function setPagesEnvVar(accountId, projectName, key, value) {
+  await cfApi("PATCH", `/accounts/${accountId}/pages/projects/${projectName}`, {
+    deployment_configs: {
+      production: { env_vars: { [key]: { value } } },
+      preview: { env_vars: { [key]: { value } } },
+    },
+  });
+  console.log(`Set Pages env var ${key}=${value} on "${projectName}".`);
 }
 
 main().catch((error) => {
