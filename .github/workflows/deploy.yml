@@ -64,6 +64,7 @@ jobs:
           key: cargo-${{ runner.os }}-${{ hashFiles('crates/core/Cargo.lock') }}
           restore-keys: cargo-${{ runner.os }}-
       - run: cargo test --manifest-path crates/core/Cargo.toml
+      - run: curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
       - run: npm run build:wasm
       - uses: actions/setup-node@v4
         with:
@@ -126,6 +127,7 @@ jobs:
             crates/core/target
           key: cargo-${{ runner.os }}-${{ hashFiles('crates/core/Cargo.lock') }}
           restore-keys: cargo-${{ runner.os }}-
+      - run: curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
       - uses: actions/setup-node@v4
         with:
           node-version: 22
