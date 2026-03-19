@@ -1,4 +1,5 @@
 import type { QueueJob } from "../../shared/types/api";
+import { renderTemplate } from "../wasm";
 
 const TEMPLATE_KEY = "templates/job-result.txt";
 const DEFAULT_TEMPLATE = "Job {{id}} for {{name}}: {{message}} (processed at {{processedAt}})";
@@ -13,10 +14,6 @@ async function getTemplate(r2: R2Bucket): Promise<string> {
   return DEFAULT_TEMPLATE;
 }
 
-function renderTemplate(template: string, vars: Record<string, string>): string {
-  return template.replace(/\{\{(\w+)\}\}/g, (_, key) => vars[key] ?? "");
-}
-
 export async function handleQueueBatch(
   env: { DB: D1Database; FILES: R2Bucket },
   batch: MessageBatch<QueueJob>,
@@ -27,12 +24,15 @@ export async function handleQueueBatch(
   const statements = [];
   for (const message of batch.messages) {
     const job = message.body;
-    const rendered = renderTemplate(template, {
-      id: job.id,
-      name: job.name,
-      message: job.message,
-      processedAt,
-    });
+    const rendered = renderTemplate(
+      template,
+      JSON.stringify({
+        id: job.id,
+        name: job.name,
+        message: job.message,
+        processedAt,
+      }),
+    );
 
     let externalStatus: number | null = null;
     try {

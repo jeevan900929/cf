@@ -5,6 +5,9 @@
   "compatibility_date": "2026-03-17",
   "compatibility_flags": ["nodejs_compat"],
   "workers_dev": true,
+  "rules": [
+    { "type": "CompiledWasm", "globs": ["**/*.wasm"], "fallthrough": true }
+  ],
   "kv_namespaces": [
     {
       "binding": "CACHE",

@@ -1,8 +1,8 @@
-export const SERVICE_NAME = "cf-boilerplate" as const;
+// SERVICE_NAME is provided by the WASM module via getServiceName() in src/wasm.ts
 
 export interface HelloApiResponse {
   ok: true;
-  service: typeof SERVICE_NAME;
+  service: string;
   subject: string;
   message: string;
   visits: number;
@@ -25,6 +25,6 @@ export interface QueueJob {
 
 export interface ErrorApiResponse {
   ok: false;
-  service: typeof SERVICE_NAME;
+  service: string;
   error: string;
 }

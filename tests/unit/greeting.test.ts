@@ -1,7 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { buildHelloResponse } from "../../src/application/hello";
-import { createGreeting, normalizeSubject } from "../../src/domain/greeting";
+import { buildHelloResponse, createGreeting, normalizeSubject } from "../../src/wasm";
 
 describe("greeting domain", () => {
   it("defaults to Cloudflare", () => {
@@ -19,7 +18,7 @@ describe("greeting domain", () => {
       message: "Hello, Cloudflare!",
     });
 
-    expect(buildHelloResponse({ name: "Cloudflare" })).toEqual({
+    expect(buildHelloResponse("Cloudflare")).toEqual({
       ok: true,
       service: "cf-boilerplate",
       subject: "Cloudflare",

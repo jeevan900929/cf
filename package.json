@@ -6,13 +6,15 @@
     "infra/pulumi"
   ],
   "scripts": {
-    "dev": "wrangler pages dev pages --port 8788 -- wrangler dev --port 8787",
+    "build:wasm": "wasm-pack build crates/core --target bundler --out-dir pkg && node -e \"const fs=require('fs');const src='scripts/cf_core_bg.d.ts';const dst='crates/core/pkg/cf_core_bg.d.ts';if(fs.existsSync(src))fs.copyFileSync(src,dst)\"",
+    "dev": "npm run build:wasm && wrangler pages dev pages --port 8788 -- wrangler dev --port 8787",
     "check": "npm run test && npm run typecheck",
     "test": "vitest run",
+    "test:rust": "cargo test --manifest-path crates/core/Cargo.toml",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "types": "wrangler types",
-    "deploy": "node scripts/deploy-worker.mjs && node scripts/deploy-pages.mjs",
-    "deploy:worker": "node scripts/deploy-worker.mjs",
+    "deploy": "npm run build:wasm && node scripts/deploy-worker.mjs && node scripts/deploy-pages.mjs",
+    "deploy:worker": "npm run build:wasm && node scripts/deploy-worker.mjs",
     "deploy:pages": "node scripts/deploy-pages.mjs"
   },
   "devDependencies": {
@@ -22,5 +24,8 @@
     "typescript": "^5.9.3",
     "vitest": "^4.1.0",
     "wrangler": "^4.75.0"
+  },
+  "dependencies": {
+    "hono": "^4.12.8"
   }
 }

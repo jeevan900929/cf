@@ -9,3 +9,5 @@ infra/pulumi/.pulumi
 infra/pulumi/Pulumi.dev.yaml
 playwright-report
 test-results
+crates/core/target/
+crates/core/pkg/
