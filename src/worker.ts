@@ -62,6 +62,21 @@ export default {
       return new Response(null, { status: 204, headers: createHeaders() });
     }
 
+    try {
+      return await handleRequest(request, env);
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Internal server error";
+      console.error("Unhandled error:", err);
+      return json({ ok: false, error: message }, { status: 500 });
+    }
+  },
+
+  async queue(batch: MessageBatch<QueueJob>, env: Env): Promise<void> {
+    await handleQueueBatch(env, batch);
+  },
+} satisfies ExportedHandler<Env, QueueJob>;
+
+async function handleRequest(request: Request, env: Env): Promise<Response> {
     const url = new URL(request.url);
     const { pathname } = url;
 
@@ -175,9 +190,4 @@ export default {
     }
 
     return json({ ok: false, service: SERVICE_NAME, error: "Not Found" }, { status: 404 });
-  },
-
-  async queue(batch: MessageBatch<QueueJob>, env: Env): Promise<void> {
-    await handleQueueBatch(env, batch);
-  },
-} satisfies ExportedHandler<Env, QueueJob>;
+}
