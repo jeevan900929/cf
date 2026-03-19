@@ -86,9 +86,13 @@ pulumi up
 
 ### Automatic deploys
 
-Every push to `main` runs the `prod` stack in GitHub Actions. Add `PULUMI_ACCESS_TOKEN`
-and `CLOUDFLARE_API_TOKEN` as repository secrets so the workflow can refresh the
-Pulumi stack and deploy the Worker.
+Every push to `main` runs the `prod` stack in GitHub Actions. Pulumi auth happens
+through GitHub OIDC, so the only repository secret you need for deployment is
+`CLOUDFLARE_API_TOKEN`.
+
+Before the workflow can run, register GitHub as an OIDC issuer in Pulumi and
+allow this repo to exchange tokens for the `jeevanraj-angamuthu-ext-sadhguru-org`
+account.
 
 ### Pages
 
@@ -100,6 +104,9 @@ npm run pages:deploy
 
 Set the Pulumi config values on the stack you are targeting. `dev` powers local
 deploys and `prod` powers the GitHub Action on `main`:
+
+GitHub Actions authenticates to Pulumi with OIDC, so you do not need a
+`PULUMI_ACCESS_TOKEN` secret anymore.
 
 ```bash
 cd infra/pulumi
