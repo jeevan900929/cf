@@ -6,6 +6,6 @@ coverage
 infra/pulumi/node_modules
 infra/pulumi/bin
 infra/pulumi/.pulumi
-infra/pulumi/Pulumi.*.yaml
+infra/pulumi/Pulumi.dev.yaml
 playwright-report
 test-results

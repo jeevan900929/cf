@@ -115,15 +115,16 @@ cd infra/pulumi
 pulumi login
 pulumi stack init dev
 pulumi stack init prod
-pulumi stack select dev
+pulumi stack select prod
 pulumi config set accountId <CLOUDFLARE_ACCOUNT_ID>
-pulumi config set --secret apiToken <CLOUDFLARE_API_TOKEN>
 pulumi config set projectName cf-boilerplate
 pulumi config set workerScriptName cf-boilerplate-api
 ```
 
-Repeat the same config commands after `pulumi stack select prod` so the production
-stack has matching values.
+The Cloudflare API token is **not** stored in Pulumi config. The Pulumi Cloudflare
+provider reads `CLOUDFLARE_API_TOKEN` from the environment directly. Set this
+environment variable locally and add it as a `CLOUDFLARE_API_TOKEN` repository
+secret in GitHub for CI deployments.
 
 `zoneId` and `domainName` are optional. Only set them if you want Pulumi to also
 manage a custom Worker route like `api.example.com/*`. If you omit them, the prod

@@ -4,15 +4,13 @@ import * as pulumi from "@pulumi/pulumi";
 const config = new pulumi.Config();
 
 const accountId = config.require("accountId");
-const apiToken = config.requireSecret("apiToken");
 const zoneId = config.get("zoneId");
 const domainName = config.get("domainName");
 const projectName = config.get("projectName") ?? "cf-boilerplate";
 const workerScriptName = config.get("workerScriptName") ?? "cf-boilerplate-api";
 
-const provider = new cloudflare.Provider("cloudflare", {
-  apiToken,
-});
+// The Cloudflare provider reads CLOUDFLARE_API_TOKEN from env automatically.
+const provider = new cloudflare.Provider("cloudflare");
 
 const d1Database = new cloudflare.D1Database(
   "appDatabase",
